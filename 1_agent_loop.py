@@ -29,9 +29,9 @@ def apply_discount(price: float, discount_tier: str) -> float:
     Available tiers: "bronze", "silver", "gold"
     """
     
-    print(f"Applying discount: Original price {price}, Discount {discount_tier}%, Discounted price {price * (1 - discount_percentages.get(discount_tier.lower(), 0) / 100)}")
     discount_percentages = {"bronze": 5, "silver": 12, "gold": 23}
     discount = discount_percentages.get(discount_tier.lower(), 0)
+    print(f"Applying discount: Original price {price}, Discount {discount_tier}%, Discounted price {price * (1 - discount_percentages.get(discount_tier.lower(), 0) / 100)}")
     
     return round(price * (1 - discount / 100), 2)
 
@@ -43,10 +43,8 @@ def run_agent(question: str):
 
     tools = [get_product_price, apply_discount]
     tools_dict = {tool.name: tool for tool in tools}
-
     llm = init_chat_model(f"deepseek:{MODEL}", temperature=0)
     llm_with_tools = llm.bind_tools(tools)
-
     print(f"Starting agent loop for question: {question}")
 
     messages = [
@@ -59,11 +57,11 @@ def run_agent(question: str):
         If you don't know the answer, say 'I don't know'. If the user asks for a discount, 
         you must first get the product price using get_product_price and then apply the discount using apply_discount. 
         Do not make up any prices or discounts. Always use the tools provided to get accurate information."""),
-        HumanMessage(content=question)]
+        HumanMessage(content=question),
+    ]
 
     for iteration in range(1, MAX_ITERATIONS + 1):
         print(f"\nIteration {iteration}:")
-
         ai_message = llm_with_tools.invoke(messages)
         tool_calls = ai_message.tool_calls
 
@@ -73,26 +71,26 @@ def run_agent(question: str):
             print(ai_message.content)
             return ai_message.content
 
-        #Process only the first tool call - force one tool call per iteration
-
         tool_call = tool_calls[0]
         tool_name = tool_call.get("name")
         tool_args = tool_call.get("args", {})
-        tool_id = tool_call.get("id")
-
+        tool_call_id = tool_call.get("id")
         print(f"Tool call detected: {tool_name} with arguments {tool_args}")
-
         tool_to_use = tools_dict.get(tool_name)
         
         if tool_to_use is None:
             print(f"Tool {tool_name} not found. Skipping this tool call.")
-            messages.append(ToolMessage(content=f"Tool {tool_name} not found.", tool_name=tool_name, tool_id=tool_id))
-            continue
+            raise ValueError(f"Tool {tool_name} not found.")
 
+        observation = tool_to_use.invoke(tool_args)
+        print(f"Observation from tool {tool_name}: {observation}")
+        messages.append(ai_message)
+        messages.append(ToolMessage(content=str(observation), tool_call_id=tool_call_id)) 
+    
+    print("Maximum iterations reached. Final response from AI:")
+    print(ai_message.content)
+    return None
         
 
-
-
-
 if __name__ == "__main__":
-    result = run_agent("What is the price of a laptop and apply a gold discount to it?")
+    result = run_agent("Mouse prices while apply a bronze discount to it?")
