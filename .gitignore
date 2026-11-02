@@ -205,6 +205,9 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Raw ReAct agent run trace written by 3_raw_preact_prompt.py
+agent_run_log.txt
+
 # Ruff stuff:
 .ruff_cache/
 

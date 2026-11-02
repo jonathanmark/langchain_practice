@@ -1,0 +1,21 @@
+# Direct imports per script:
+#   bare_react.py, 3_raw_preact_prompt.py -> requests, python-dotenv
+#   1_agent_loop.py                       -> langchain, langchain-core, langsmith, python-dotenv
+#   main.py                               -> langchain, langchain-core, langchain-deepseek,
+#                                            langchain-tavily, pydantic, python-dotenv
+#   section_one.py                        -> (stdlib only)
+#
+# Versions below are the ones installed in .venv (Python 3.14.7).
+
+# LangChain / LangGraph stack
+langchain==1.4.7
+langchain-core==1.7.0
+langchain-deepseek==1.1.1
+langchain-tavily==0.2.18
+langgraph==1.2.16
+langsmith==0.14.12
+
+# Models, env and HTTP
+pydantic==2.14.1
+python-dotenv==1.2.4
+requests==2.34.2
